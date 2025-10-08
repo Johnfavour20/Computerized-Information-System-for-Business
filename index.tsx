@@ -1,6 +1,3 @@
-
-import { GoogleGenAI } from "@google/genai";
-
 // --- TYPE DEFINITIONS ---
 interface Contact {
     id: number;
@@ -41,7 +38,13 @@ const defaultData = {
     contacts: [
         { id: 1672532400001, firstName: 'Elena', lastName: 'Rodriguez', phone: '202-555-0181', email: 'elena.r@innovate.com', organization: 'Innovate Inc.', category: '1', address: '123 Tech Ave', city: 'Metropolis', state: 'NY', notes: 'Primary contact for Project Alpha.', dateAdded: '2023-01-01T10:00:00.000Z' },
         { id: 1672532400002, firstName: 'Marcus', lastName: 'Chen', phone: '202-555-0199', email: 'marcus.chen@apex.co', organization: 'Apex Supplies', category: '2', address: '456 Industrial Rd', city: 'Gotham', state: 'NJ', notes: 'Our main supplier for raw materials.', dateAdded: '2023-02-15T11:30:00.000Z' },
-        { id: 1672532400003, firstName: 'Sophia', lastName: 'Williams', phone: '312-555-0142', email: 'sophia.w@quantum.net', organization: 'Quantum Solutions', category: '3', address: '789 Logic Lane', city: 'Star City', state: 'CA', notes: 'Partner for the upcoming Q3 initiative.', dateAdded: '2023-03-10T14:00:00.000Z' }
+        { id: 1672532400003, firstName: 'Sophia', lastName: 'Williams', phone: '312-555-0142', email: 'sophia.w@quantum.net', organization: 'Quantum Solutions', category: '3', address: '789 Logic Lane', city: 'Star City', state: 'CA', notes: 'Partner for the upcoming Q3 initiative.', dateAdded: '2023-03-10T14:00:00.000Z' },
+        { id: 1672532400004, firstName: 'Liam', lastName: "O'Connor", phone: '415-555-0133', email: 'liam.o@synergy.io', organization: 'Synergy Corp', category: '4', address: '101 Future Drive', city: 'San Francisco', state: 'CA', notes: 'Met at the tech conference. Interested in our services.', dateAdded: '2023-04-20T09:00:00.000Z' },
+        { id: 1672532400005, firstName: 'Aisha', lastName: 'Khan', phone: '312-555-0155', email: 'aisha.k@quantum.net', organization: 'Quantum Solutions', category: '1', address: '789 Logic Lane', city: 'Star City', state: 'CA', notes: 'Handles the day-to-day operations for the Q3 initiative.', dateAdded: '2023-05-05T16:45:00.000Z' },
+        { id: 1672532400006, firstName: 'Ben', lastName: 'Carter', phone: '713-555-0112', email: 'ben.carter@atlas.com', organization: 'Atlas Manufacturing', category: '2', address: '234 Factory Blvd', city: 'Houston', state: 'TX', notes: 'Provides specialized components. Good pricing.', dateAdded: '2023-06-11T13:20:00.000Z' },
+        { id: 1672532400007, firstName: 'Olivia', lastName: 'Garcia', phone: '305-555-0178', email: 'olivia.g@vista.co', organization: 'Vista Innovations', category: '3', address: '567 Ocean View', city: 'Miami', state: 'FL', notes: 'Potential partner for the new marketing campaign.', dateAdded: '2023-07-22T18:10:00.000Z' },
+        { id: 1672532400008, firstName: 'David', lastName: 'Kim', phone: '206-555-0121', email: 'david.kim@summit.com', organization: 'Summit Enterprises', category: '4', address: '890 Peak St', city: 'Seattle', state: 'WA', notes: 'Interested in a bulk purchase. Follow up next week.', dateAdded: '2023-08-01T11:00:00.000Z' },
+        { id: 1672532400009, firstName: 'Chloe', lastName: 'Taylor', phone: '617-555-0164', email: 'chloe.t@innovate.com', organization: 'Innovate Inc.', category: '1', address: '123 Tech Ave', city: 'Metropolis', state: 'NY', notes: 'Technical lead for Project Alpha.', dateAdded: '2023-09-14T10:30:00.000Z' }
     ],
     categories: [
         { id: 1, name: 'Client', description: 'Regular customers' },
@@ -52,8 +55,24 @@ const defaultData = {
     activities: []
 };
 
-// --- GEMINI API SETUP ---
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// --- SVG ICONS ---
+const svgIcon = (path: string, viewBox = '0 0 24 24') => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="${viewBox}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+
+const icons = {
+    edit: svgIcon(`<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>`),
+    trash: svgIcon(`<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>`),
+    plus: svgIcon(`<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>`),
+    phone: svgIcon(`<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>`),
+    mail: svgIcon(`<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>`),
+    location: svgIcon(`<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>`),
+    usersGroup: svgIcon(`<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>`),
+    tag: svgIcon(`<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.432 0l6.586-6.586a2.426 2.426 0 0 0 0-3.432z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>`),
+    export: svgIcon(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>`),
+    chart: svgIcon(`<path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20V16"></path>`),
+    backup: svgIcon(`<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>`),
+    import: svgIcon(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>`),
+    activityLog: svgIcon(`<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>`),
+};
 
 
 // --- AUTHENTICATION ---
@@ -88,11 +107,9 @@ function handleRegister(event: Event) {
 
     localStorage.setItem('CISB_DATA', JSON.stringify(appData));
     
-    // Redirect to login form instead of auto-logging in
-    alert('Registration successful! Please sign in.');
+    alert('Registration successful! Welcome.');
     (document.getElementById('registerForm') as HTMLFormElement).reset();
-    showAuthForm('login');
-    (document.getElementById('loginUsername') as HTMLInputElement).value = username;
+    loginUser(newUser.id);
 }
 
 function handleLogin(event: Event) {
@@ -122,14 +139,12 @@ function handleLogout() {
     categories = [];
     activities = [];
 
-    // Reset dashboard title
     const dashboardTitle = document.getElementById('dashboardTitle') as HTMLElement;
     if (dashboardTitle) {
         dashboardTitle.textContent = 'Dashboard';
     }
 
     document.getElementById('auth-container')!.style.display = 'block';
-    // FIX: Cast querySelector result to HTMLElement to access style property
     (document.querySelector('.container') as HTMLElement)!.style.display = 'none';
     showAuthForm('login');
 }
@@ -140,7 +155,6 @@ function getMasterData() {
     if (data) {
         return JSON.parse(data);
     }
-    // Initialize if it doesn't exist, making storage the single source of truth.
     const initialData = { users: [], userData: {} };
     localStorage.setItem('CISB_DATA', JSON.stringify(initialData));
     return initialData;
@@ -163,32 +177,40 @@ function loadFromLocalStorage() {
         categories = userData.categories || [];
         activities = userData.activities || [];
     } else {
-        // This case handles a corrupted data scenario
         contacts = [];
         categories = [];
         activities = [];
     }
 }
 
-// --- INITIALIZATION ---
+// --- INITIALIZATION & UI ---
 function init() {
     const userId = sessionStorage.getItem('CISB_USER_ID');
     if (userId) {
         initializeAppForUser(parseInt(userId, 10));
     } else {
         document.getElementById('auth-container')!.style.display = 'block';
-        // FIX: Cast querySelector result to HTMLElement to access style property
         (document.querySelector('.container') as HTMLElement)!.style.display = 'none';
     }
 
     const savedTheme = localStorage.getItem('smeTheme');
     (document.getElementById('darkModeToggle') as HTMLInputElement).checked = savedTheme === 'dark';
+
+    // Mobile menu setup
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    hamburgerMenu?.addEventListener('click', toggleMobileMenu);
+
+    const sidebar = document.querySelector('.sidebar');
+    sidebar?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('.nav-btn')) {
+            closeMobileMenu();
+        }
+    });
 }
 
 function initializeAppForUser(userId: number) {
     currentUserId = userId;
 
-    // Personalize Dashboard Title
     const appData = getMasterData();
     const user = appData.users.find((u: { id: number; }) => u.id === userId);
     const dashboardTitle = document.getElementById('dashboardTitle') as HTMLElement;
@@ -197,8 +219,7 @@ function initializeAppForUser(userId: number) {
     }
 
     document.getElementById('auth-container')!.style.display = 'none';
-    // FIX: Cast querySelector result to HTMLElement to access style property
-    (document.querySelector('.container') as HTMLElement)!.style.display = 'block';
+    (document.querySelector('.container') as HTMLElement)!.style.display = 'flex';
 
     loadFromLocalStorage();
     populateCategoryDropdowns();
@@ -209,7 +230,14 @@ function initializeAppForUser(userId: number) {
     showView('dashboard');
 }
 
-// Navigation
+function toggleMobileMenu() {
+    document.body.classList.toggle('sidebar-open');
+}
+
+function closeMobileMenu() {
+    document.body.classList.remove('sidebar-open');
+}
+
 function showView(viewId: string) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -221,11 +249,9 @@ function showView(viewId: string) {
     }
 }
 
-// Theme toggle function
 function toggleTheme() {
     const root = document.documentElement;
     root.classList.toggle('dark');
-    
     const isDarkMode = root.classList.contains('dark');
     localStorage.setItem('smeTheme', isDarkMode ? 'dark' : 'light');
 }
@@ -299,10 +325,10 @@ function saveContact() {
     if (currentEditId) {
         const index = contacts.findIndex(c => c.id === currentEditId);
         contacts[index] = contact;
-        addActivity(`Updated contact: ${firstName} ${lastName}`, '✏️');
+        addActivity(`Updated contact: ${firstName} ${lastName}`, icons.edit);
     } else {
         contacts.push(contact);
-        addActivity(`Added new contact: ${firstName} ${lastName}`, '➕');
+        addActivity(`Added new contact: ${firstName} ${lastName}`, icons.plus);
     }
 
     saveToLocalStorage();
@@ -318,7 +344,7 @@ function deleteContact(id: number) {
 
     if (confirm(`Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`)) {
         contacts = contacts.filter(c => c.id !== id);
-        addActivity(`Deleted contact: ${contact.firstName} ${contact.lastName}`, '🗑️');
+        addActivity(`Deleted contact: ${contact.firstName} ${contact.lastName}`, icons.trash);
         saveToLocalStorage();
         renderContacts();
         updateStats();
@@ -330,17 +356,8 @@ function renderContacts() {
     const grid = document.getElementById('contactsGrid')!;
     const emptyState = document.getElementById('emptyState')!;
     
-    if (contacts.length === 0) {
-        grid.style.display = 'none';
-        emptyState.style.display = 'block';
-    } else {
-        grid.style.display = 'grid';
-        emptyState.style.display = 'none';
-    }
-
     let filteredContacts = [...contacts];
     
-    // Apply filters
     const searchTerm = (document.getElementById('searchInput') as HTMLInputElement)?.value.toLowerCase() || '';
     const categoryFilter = (document.getElementById('categoryFilter') as HTMLSelectElement)?.value || '';
     const sortFilter = (document.getElementById('sortFilter') as HTMLSelectElement)?.value || 'name';
@@ -359,7 +376,6 @@ function renderContacts() {
         filteredContacts = filteredContacts.filter(c => c.category == categoryFilter);
     }
 
-    // Apply sorting
     if (sortFilter === 'name') {
         filteredContacts.sort((a, b) => a.lastName.localeCompare(b.lastName));
     } else if (sortFilter === 'recent') {
@@ -368,15 +384,16 @@ function renderContacts() {
         filteredContacts.sort((a, b) => (a.organization || '').localeCompare(b.organization || ''));
     }
 
+    if (filteredContacts.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'block';
+    } else {
+        grid.style.display = 'grid';
+        emptyState.style.display = 'none';
+    }
+
     grid.innerHTML = filteredContacts.map(contact => {
-        let initials = '👤';
-        if (contact.firstName && contact.lastName) {
-            initials = `${contact.firstName[0]}${contact.lastName[0]}`.toUpperCase();
-        } else if (contact.firstName) {
-            initials = contact.firstName[0].toUpperCase();
-        } else if (contact.lastName) {
-            initials = contact.lastName[0].toUpperCase();
-        }
+        let initials = (contact.firstName?.[0] || '' + contact.lastName?.[0] || '').toUpperCase() || '??';
         const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || 'Uncategorized';
         
         return `
@@ -390,27 +407,14 @@ function renderContacts() {
                         </div>
                     </div>
                     <div class="contact-actions">
-                        <button class="icon-btn" onclick="editContact(${contact.id})" title="Edit">✏️</button>
-                        <button class="icon-btn" onclick="deleteContact(${contact.id})" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="editContact(${contact.id})" title="Edit">${icons.edit}</button>
+                        <button class="icon-btn" onclick="deleteContact(${contact.id})" title="Delete">${icons.trash}</button>
                     </div>
                 </div>
                 <div class="contact-details">
-                    <div class="detail-row">
-                        <span class="icon">📞</span>
-                        <a href="tel:${contact.phone}">${contact.phone}</a>
-                    </div>
-                    ${contact.email ? `
-                    <div class="detail-row">
-                        <span class="icon">✉️</span>
-                        <a href="mailto:${contact.email}">${contact.email}</a>
-                    </div>
-                    ` : ''}
-                    ${contact.address ? `
-                    <div class="detail-row">
-                        <span class="icon">📍</span>
-                        <span>${contact.address}${contact.city ? ', ' + contact.city : ''}${contact.state ? ', ' + contact.state : ''}</span>
-                    </div>
-                    ` : ''}
+                    <div class="detail-row"><span class="icon">${icons.phone}</span><a href="tel:${contact.phone}">${contact.phone}</a></div>
+                    ${contact.email ? `<div class="detail-row"><span class="icon">${icons.mail}</span><a href="mailto:${contact.email}">${contact.email}</a></div>` : ''}
+                    ${contact.address ? `<div class="detail-row"><span class="icon">${icons.location}</span><span>${contact.address}${contact.city ? ', ' + contact.city : ''}${contact.state ? ', ' + contact.state : ''}</span></div>` : ''}
                     <span class="category-badge">${categoryName}</span>
                 </div>
             </div>
@@ -418,9 +422,7 @@ function renderContacts() {
     }).join('');
 }
 
-function filterContacts() {
-    renderContacts();
-}
+function filterContacts() { renderContacts(); }
 
 // Category functions
 function openAddCategoryModal() {
@@ -429,9 +431,7 @@ function openAddCategoryModal() {
     document.getElementById('categoryModal')!.classList.add('active');
 }
 
-function closeCategoryModal() {
-    document.getElementById('categoryModal')!.classList.remove('active');
-}
+function closeCategoryModal() { document.getElementById('categoryModal')!.classList.remove('active'); }
 
 function saveCategory() {
     const name = (document.getElementById('categoryName') as HTMLInputElement).value.trim();
@@ -442,14 +442,10 @@ function saveCategory() {
         return;
     }
 
-    const category: Category = {
-        id: Date.now(),
-        name,
-        description
-    };
+    const category: Category = { id: Date.now(), name, description };
 
     categories.push(category);
-    addActivity(`Added new category: ${name}`, '🏷️');
+    addActivity(`Added new category: ${name}`, icons.tag);
     saveToLocalStorage();
     populateCategoryDropdowns();
     renderCategories();
@@ -470,7 +466,7 @@ function deleteCategory(id: number) {
 
     if (confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
         categories = categories.filter(c => c.id !== id);
-        addActivity(`Deleted category: ${category.name}`, '🗑️');
+        addActivity(`Deleted category: ${category.name}`, icons.trash);
         saveToLocalStorage();
         populateCategoryDropdowns();
         renderCategories();
@@ -482,44 +478,32 @@ function populateCategoryDropdowns() {
     const categorySelect = document.getElementById('category')!;
     const categoryFilter = document.getElementById('categoryFilter')!;
     
-    const options = categories.map(cat => 
-        `<option value="${cat.id}">${cat.name}</option>`
-    ).join('');
+    const options = categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
 
-    if (categorySelect) {
-        categorySelect.innerHTML = '<option value="">Select Category</option>' + options;
-    }
-
-    if (categoryFilter) {
-        categoryFilter.innerHTML = '<option value="">All Categories</option>' + options;
-    }
+    if (categorySelect) categorySelect.innerHTML = '<option value="">Select Category</option>' + options;
+    if (categoryFilter) categoryFilter.innerHTML = '<option value="">All Categories</option>' + options;
 }
 
 function renderCategories() {
     const grid = document.getElementById('categoriesGrid')!;
-    
     grid.innerHTML = categories.map(category => {
         const contactCount = contacts.filter(c => c.category == String(category.id)).length;
-        
         return `
             <div class="contact-card" onclick="viewContactsByCategory(${category.id})">
                 <div class="contact-header">
                     <div style="display: flex; align-items: center;">
-                        <div class="contact-avatar">🏷️</div>
+                        <div class="contact-avatar">${icons.tag}</div>
                         <div class="contact-info">
                             <div class="contact-name">${category.name}</div>
                             ${category.description ? `<div class="contact-org">${category.description}</div>` : ''}
                         </div>
                     </div>
                     <div class="contact-actions">
-                        <button class="icon-btn" onclick="deleteCategory(${category.id}); event.stopPropagation();" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="deleteCategory(${category.id}); event.stopPropagation();" title="Delete">${icons.trash}</button>
                     </div>
                 </div>
                 <div class="contact-details">
-                    <div class="detail-row">
-                        <span class="icon">👥</span>
-                        <span>${contactCount} contact${contactCount !== 1 ? 's' : ''}</span>
-                    </div>
+                    <div class="detail-row"><span class="icon">${icons.usersGroup}</span><span>${contactCount} contact${contactCount !== 1 ? 's' : ''}</span></div>
                 </div>
             </div>
         `;
@@ -544,20 +528,9 @@ function updateDashboard() {
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const newThisMonth = contacts.filter(c => new Date(c.dateAdded) >= firstOfMonth).length;
     
-    const clients = contacts.filter(c => {
-        const cat = categories.find(cat => cat.id == Number(c.category));
-        return cat && cat.name.toLowerCase() === 'client';
-    }).length;
-    
-    const suppliers = contacts.filter(c => {
-        const cat = categories.find(cat => cat.id == Number(c.category));
-        return cat && cat.name.toLowerCase() === 'supplier';
-    }).length;
-
-    const partners = contacts.filter(c => {
-        const cat = categories.find(cat => cat.id == Number(c.category));
-        return cat && cat.name.toLowerCase() === 'partner';
-    }).length;
+    const clients = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'client').length;
+    const suppliers = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'supplier').length;
+    const partners = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'partner').length;
 
     document.getElementById('dashTotalContacts')!.textContent = String(total);
     document.getElementById('dashNewThisMonth')!.textContent = String(newThisMonth);
@@ -573,28 +546,18 @@ function updateDashboard() {
 
 // Activity tracking
 function addActivity(text: string, icon: string) {
-    activities.unshift({
-        text,
-        icon,
-        time: new Date().toLocaleString()
-    });
-    
-    if (activities.length > 10) {
-        activities = activities.slice(0, 10);
-    }
-    
-    saveToLocalStorage(); // Save activities
+    activities.unshift({ text, icon, time: new Date().toLocaleString() });
+    if (activities.length > 10) activities = activities.slice(0, 10);
+    saveToLocalStorage();
     renderActivity();
 }
 
 function renderActivity() {
     const activityList = document.getElementById('activityList')!;
-    
     if (!activities || activities.length === 0) {
-        activityList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-light);"><div style="font-size: 48px; margin-bottom: 10px;">📊</div><div>No recent activity</div></div>`;
+        activityList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-3);"><div style="font-size: 48px; margin-bottom: 10px;">${icons.activityLog}</div><div>No recent activity</div></div>`;
         return;
     }
-
     activityList.innerHTML = activities.map(activity => `
         <div class="activity-item">
             <div class="activity-icon">${activity.icon}</div>
@@ -612,35 +575,19 @@ function exportContacts() {
         alert('No contacts to export');
         return;
     }
-
     const csv = convertToCSV(contacts);
     downloadCSV(csv, 'contacts_export.csv');
-    addActivity(`Exported ${contacts.length} contacts`, '📤');
+    addActivity(`Exported ${contacts.length} contacts`, icons.export);
 }
 
 function convertToCSV(data: Contact[]) {
     const headers = ['First Name', 'Last Name', 'Phone', 'Email', 'Organization', 'Category', 'Address', 'City', 'State', 'Notes'];
     const rows = data.map(contact => {
         const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || '';
-        return [
-            contact.firstName,
-            contact.lastName,
-            contact.phone,
-            contact.email || '',
-            contact.organization || '',
-            categoryName,
-            contact.address || '',
-            contact.city || '',
-            contact.state || '',
-            (contact.notes || '').replace(/"/g, '""')
-        ];
+        return [contact.firstName, contact.lastName, contact.phone, contact.email || '', contact.organization || '', categoryName, contact.address || '', contact.city || '', contact.state || '', (contact.notes || '').replace(/"/g, '""')];
     });
-
     let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-    });
-
+    rows.forEach(row => { csvContent += row.map(field => `"${field}"`).join(',') + '\n'; });
     return csvContent;
 }
 
@@ -648,11 +595,9 @@ function downloadCSV(csv: string, filename: string) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -663,64 +608,38 @@ function generateReport() {
         totalContacts: contacts.length,
         byCategory: {},
         byState: {},
-        recentlyAdded: contacts.filter(c => {
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return new Date(c.dateAdded) >= weekAgo;
-        }).length
+        recentlyAdded: contacts.filter(c => new Date(c.dateAdded) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length
     };
-
     contacts.forEach(contact => {
         const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || 'Uncategorized';
         reportData.byCategory[categoryName] = (reportData.byCategory[categoryName] || 0) + 1;
+        if (contact.state) reportData.byState[contact.state] = (reportData.byState[contact.state] || 0) + 1;
     });
 
-    contacts.forEach(contact => {
-        if (contact.state) {
-            reportData.byState[contact.state] = (reportData.byState[contact.state] || 0) + 1;
-        }
-    });
-
-    let report = `COMPUTERIZED INFORMATION SYSTEM FOR BUSINESS - FULL REPORT\n`;
-    report += `Generated: ${new Date().toLocaleString()}\n\n`;
-    report += `SUMMARY\n`;
-    report += `Total Contacts: ${reportData.totalContacts}\n`;
-    report += `Added in Last 7 Days: ${reportData.recentlyAdded}\n\n`;
-    
-    report += `BY CATEGORY\n`;
+    let report = `COMPUTERIZED INFORMATION SYSTEM FOR BUSINESS - FULL REPORT\nGenerated: ${new Date().toLocaleString()}\n\nSUMMARY\nTotal Contacts: ${reportData.totalContacts}\nAdded in Last 7 Days: ${reportData.recentlyAdded}\n\nBY CATEGORY\n`;
     Object.entries(reportData.byCategory).forEach(([cat, count]) => { report += `${cat}: ${count}\n`; });
-    
     if (Object.keys(reportData.byState).length > 0) {
         report += `\nBY STATE\n`;
         Object.entries(reportData.byState).forEach(([state, count]) => { report += `${state}: ${count}\n`; });
     }
-
     downloadCSV(report, 'directory_report.txt');
-    addActivity('Generated full report', '📊');
+    addActivity('Generated full report', icons.chart);
 }
 
 // Settings functions
 function backupData() {
-    const backup = {
-        contacts,
-        categories,
-        exportDate: new Date().toISOString()
-    };
-
+    const backup = { contacts, categories, exportDate: new Date().toISOString() };
     const dataStr = JSON.stringify(backup, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    
     link.setAttribute('href', url);
     link.setAttribute('download', `directory_backup_${Date.now()}.json`);
     link.style.visibility = 'hidden';
-    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    addActivity('Created data backup', '💾');
+    addActivity('Created data backup', icons.backup);
     alert('Backup created successfully!');
 }
 
@@ -728,22 +647,17 @@ function importContacts() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    
     input.onchange = (e) => {
         const file = (e.target as HTMLInputElement).files![0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
                 const data = JSON.parse(event.target!.result as string);
                 if (data.contacts && Array.isArray(data.contacts)) {
-                    // A simple merge. More complex logic could be added for duplicates.
-                    const importedContacts = data.contacts.map((c: Contact) => ({...c, id: c.id + Date.now()})); // basic unique ID
+                    const importedContacts = data.contacts.map((c: Contact) => ({...c, id: c.id + Date.now()}));
                     contacts = [...contacts, ...importedContacts];
-                    
                     if (data.categories) {
-                        // Merge categories without duplicates
                         data.categories.forEach((importedCat: Category) => {
                             if (!categories.some(c => c.name === importedCat.name)) {
                                 categories.push({...importedCat, id: importedCat.id + Date.now()});
@@ -751,88 +665,36 @@ function importContacts() {
                         });
                     }
                     saveToLocalStorage();
-                    renderContacts();
-                    populateCategoryDropdowns();
-                    renderCategories();
-                    updateStats();
-                    updateDashboard();
-                    addActivity(`Imported ${data.contacts.length} contacts`, '📥');
+                    renderContacts(); populateCategoryDropdowns(); renderCategories(); updateStats(); updateDashboard();
+                    addActivity(`Imported ${data.contacts.length} contacts`, icons.import);
                     alert('Import successful!');
-                } else {
-                     alert('Invalid JSON file format.');
-                }
-            } catch (error) {
-                alert('Error importing file: ' + (error as Error).message);
-            }
+                } else { alert('Invalid JSON file format.'); }
+            } catch (error) { alert('Error importing file: ' + (error as Error).message); }
         };
         reader.readAsText(file);
     };
-    
     input.click();
 }
 
 function clearAllData() {
     if (confirm('Are you ABSOLUTELY sure you want to delete ALL your contacts and categories? This cannot be undone!')) {
         if (confirm('This is your final warning. All your data will be permanently deleted. Continue?')) {
-            const defaultCats = JSON.parse(JSON.stringify(defaultData.categories));
-            contacts = [];
-            categories = defaultCats;
-            activities = [];
-            saveToLocalStorage();
-            initializeAppForUser(currentUserId!);
-            alert('All your data has been cleared.');
+            const confirmationText = prompt('To confirm, please type "DELETE" in the box below.');
+            if (confirmationText === 'DELETE') {
+                const defaultCats = JSON.parse(JSON.stringify(defaultData.categories));
+                contacts = [];
+                categories = defaultCats;
+                activities = [];
+                saveToLocalStorage();
+                initializeAppForUser(currentUserId!);
+                alert('All your data has been cleared.');
+            } else {
+                alert('Deletion cancelled. You did not type "DELETE" correctly.');
+            }
         }
     }
 }
 
-async function generateLiteratureReview() {
-    const topicInput = document.getElementById('literatureTopic') as HTMLInputElement;
-    const topic = topicInput.value.trim();
-    const generateBtn = document.getElementById('generateReviewBtn') as HTMLButtonElement;
-    const resultContainer = document.getElementById('literatureResultContainer')!;
-    const resultEl = document.getElementById('literatureResult')!;
-
-    if (!topic) {
-        alert('Please enter a topic.');
-        return;
-    }
-
-    generateBtn.disabled = true;
-    generateBtn.innerHTML = '<span>⏳</span> Generating...';
-    resultContainer.style.display = 'block';
-    resultEl.innerHTML = '';
-    
-    let fullText = '';
-    const blinkingCursor = '<span class="blinking-cursor">▋</span>';
-    resultEl.innerHTML = blinkingCursor;
-
-    try {
-        const prompt = `Generate a comprehensive literature review on the topic of "${topic}". The review should be well-structured, starting with an introduction, followed by a body that discusses key themes, major theories, and important studies. Conclude with a summary of the findings and identify potential gaps in the current research. Please use markdown for formatting, including headings, bold text for key terms, and bullet points for lists.`;
-
-        const stream = await ai.models.generateContentStream({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        for await (const chunk of stream) {
-            const text = chunk.text;
-            fullText += text;
-            resultEl.innerHTML = fullText + blinkingCursor;
-        }
-        resultEl.innerHTML = fullText; // remove cursor when done
-        addActivity(`Generated literature review for: ${topic}`, '📜');
-
-    } catch (error) {
-        console.error('Error generating literature review:', error);
-        resultEl.innerHTML = `An error occurred while generating the review. Please check the console for details.`;
-        alert('An error occurred while generating the review.');
-    } finally {
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = '<span>✨</span> Generate Review';
-    }
-}
-
-// Expose functions to global scope for onclick handlers
 Object.assign(window, {
     handleLogin, handleRegister, showAuthForm, handleLogout,
     showView, toggleTheme,
@@ -840,8 +702,6 @@ Object.assign(window, {
     openAddCategoryModal, closeCategoryModal, saveCategory, deleteCategory, viewContactsByCategory,
     exportContacts, generateReport,
     backupData, importContacts, clearAllData,
-    generateLiteratureReview,
 });
 
-// Initialize on page load
 window.onload = init;

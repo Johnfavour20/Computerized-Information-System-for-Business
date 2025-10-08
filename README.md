@@ -8,7 +8,6 @@ A modern, responsive, and offline-first computerized information system for busi
 
 -   **User Authentication:** Secure registration and login system for multiple users. Each user has their own private data.
 -   **Dashboard:** At-a-glance overview of key metrics like total contacts, new contacts this month, and counts for specific categories.
--   **Literature Review Generator:** An AI-powered tool to generate comprehensive literature reviews on any topic using the Gemini API.
 -   **Contact Management:** Full CRUD (Create, Read, Update, Delete) functionality for contacts.
 -   **Category Management:** Organize contacts into customizable categories.
 -   **Powerful Search & Filtering:** Quickly find contacts with a real-time search and filter by category.
@@ -37,7 +36,6 @@ That's it! You can start managing your contacts right away.
 -   **HTML5**
 -   **CSS3** (with CSS variables for theming)
 -   **TypeScript** (in `index.tsx` for all application logic)
--   **Google Gemini API** for AI features.
 -   **Browser `localStorage`** for data persistence.
 
 ## 📂 File Structure
