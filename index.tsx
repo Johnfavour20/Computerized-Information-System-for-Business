@@ -571,7 +571,6 @@ function updateDashboard() {
     document.getElementById('reportTopGenre')!.textContent = topGenre;
 
     renderActivity();
-    renderCharts();
 }
 
 // Activity tracking
@@ -597,100 +596,6 @@ function renderActivity() {
             </div>
         </div>
     `).join('');
-}
-
-// --- Charting Functions ---
-function createBarChartSVG(data: {label: string, value: number}[], title: string): string {
-    if (!data || data.length === 0) {
-        return `<div class="chart-card"><h3>${title}</h3><div style="text-align: center; padding: 40px; color: var(--text-3);">No data to display</div></div>`;
-    }
-
-    const chartHeight = 300;
-    const barMargin = 15;
-    const chartPadding = { top: 30, right: 20, bottom: 70, left: 40 };
-    const maxValue = Math.max(...data.map(d => d.value), 0);
-    const scale = (chartHeight - chartPadding.top - chartPadding.bottom) / (maxValue || 1);
-    const barWidth = 50;
-    const chartWidth = data.length * (barWidth + barMargin) + chartPadding.left + chartPadding.right;
-
-    const bars = data.map((d, i) => {
-        const barHeight = d.value * scale;
-        const x = chartPadding.left + i * (barWidth + barMargin);
-        const y = chartHeight - chartPadding.bottom - barHeight;
-        return `
-            <g>
-                <rect class="bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="4"></rect>
-                <text class="value-label" x="${x + barWidth / 2}" y="${y - 6}" text-anchor="middle">${d.value}</text>
-            </g>
-        `;
-    }).join('');
-
-    const labels = data.map((d, i) => {
-        const x = chartPadding.left + i * (barWidth + barMargin) + barWidth / 2;
-        const y = chartHeight - chartPadding.bottom + 15;
-        const labelText = d.label.length > 15 ? d.label.substring(0, 12) + '...' : d.label;
-        return `<text class="bar-label" x="${x}" y="${y}" text-anchor="middle" transform="rotate(-45, ${x}, ${y})">${labelText}</text>`;
-    }).join('');
-
-    const yAxisLines = [];
-    const tickCount = 5;
-    for (let i = 0; i <= tickCount; i++) {
-        const value = (maxValue / tickCount) * i;
-        if (value > 0) {
-            const y = chartHeight - chartPadding.bottom - (value * scale);
-            yAxisLines.push(`
-                <g>
-                    <line class="grid-line" x1="${chartPadding.left}" y1="${y}" x2="${chartWidth - chartPadding.right}" y2="${y}"></line>
-                    <text class="y-axis-label" x="${chartPadding.left - 8}" y="${y + 4}" text-anchor="end">${Math.round(value)}</text>
-                </g>
-            `);
-        }
-    }
-
-    return `
-        <div class="chart-card">
-            <h3>${title}</h3>
-            <svg class="chart-svg" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMinYMid meet">
-                <line class="axis-line" x1="${chartPadding.left}" y1="${chartHeight - chartPadding.bottom}" x2="${chartWidth - chartPadding.right}" y2="${chartHeight - chartPadding.bottom}"></line>
-                ${yAxisLines.join('')}
-                ${bars}
-                ${labels}
-            </svg>
-        </div>
-    `;
-}
-
-function renderCharts() {
-    const container = document.getElementById('chartsContainer');
-    if (!container) return;
-
-    // Chart 1: Sales by Genre
-    const salesByGenre: { [key: string]: number } = {};
-    sales.forEach(sale => {
-        const book = books.find(b => b.id === sale.bookId);
-        if (book) {
-            const genreName = genres.find(g => g.id == Number(book.genre))?.name || 'Uncategorized';
-            salesByGenre[genreName] = (salesByGenre[genreName] || 0) + sale.quantity;
-        }
-    });
-    const genreChartData = Object.entries(salesByGenre)
-        .map(([label, value]) => ({ label, value }))
-        .sort((a, b) => b.value - a.value);
-
-    // Chart 2: Top 5 Best-Selling Books
-    const salesByBook: { [key: string]: number } = {};
-    sales.forEach(sale => {
-        salesByBook[sale.bookTitle] = (salesByBook[sale.bookTitle] || 0) + sale.quantity;
-    });
-    const bookChartData = Object.entries(salesByBook)
-        .map(([label, value]) => ({ label, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
-
-    container.innerHTML = `
-        ${createBarChartSVG(genreChartData, 'Units Sold by Genre')}
-        ${createBarChartSVG(bookChartData, 'Top 5 Best-Selling Books')}
-    `;
 }
 
 // Export, Import, Settings functions
