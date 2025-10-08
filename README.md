@@ -1,4 +1,4 @@
-# Book Sales Management System
+# Computerized Information for Small Businesses on Book Sales
 
 A modern, responsive, and offline-first system for small businesses to manage book inventory, sales, and genres. This application is built with vanilla TypeScript, HTML, and CSS, and it runs entirely in the browser using `localStorage` for data persistence.
 
@@ -47,6 +47,17 @@ The project has been structured to separate concerns, with HTML/CSS in `index.ht
 ├── index.tsx        # Main application logic (TypeScript)
 └── metadata.json    # Application metadata
 ```
+
+## 🔮 Future Improvements
+
+This project serves as a strong foundation. Here are some potential areas for enhancement:
+
+-   **Framework Migration:** Refactor the application using a modern frontend framework like React, Vue, or Svelte for better state management and component reusability.
+-   **Advanced Storage:** Migrate from `localStorage` to IndexedDB to handle larger datasets more efficiently.
+-   **Backend Integration:** Add an optional backend service (e.g., using Node.js, Firebase, or Supabase) to enable data synchronization across multiple devices.
+-   **Enhanced Reporting:** Integrate more advanced charting libraries (e.g., Chart.js) to visualize sales data over time.
+-   **Barcode Scanning:** Implement ISBN barcode scanning using a device's camera for faster book entry and sales logging.
+-   **PWA Conversion:** Turn the application into a Progressive Web App (PWA) for a more native-like experience, including offline capabilities and home screen installation.
 
 ## 🤝 Contributing
 
