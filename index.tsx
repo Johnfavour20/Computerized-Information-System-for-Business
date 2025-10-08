@@ -1,23 +1,31 @@
 // --- TYPE DEFINITIONS ---
-interface Contact {
+interface Book {
     id: number;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    email?: string;
-    organization?: string;
-    category: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    notes?: string;
+    title: string;
+    author: string;
+    isbn: string;
+    publisher?: string;
+    publicationYear?: number;
+    genre: string; // genre id
+    price: number;
+    quantityInStock: number;
     dateAdded: string;
 }
 
-interface Category {
+interface Genre {
     id: number;
     name: string;
     description: string;
+}
+
+interface Sale {
+    id: number;
+    bookId: number;
+    bookTitle: string;
+    quantity: number;
+    pricePerItem: number;
+    totalAmount: number;
+    date: string;
 }
 
 interface Activity {
@@ -27,31 +35,31 @@ interface Activity {
 }
 
 // In-memory data for the current user
-let contacts: Contact[] = [];
-let categories: Category[] = [];
+let books: Book[] = [];
+let genres: Genre[] = [];
+let sales: Sale[] = [];
 let activities: Activity[] = [];
 
 let currentEditId: number | null = null;
+let currentSaleBookId: number | null = null;
 let currentUserId: number | null = null;
 
 const defaultData = {
-    contacts: [
-        { id: 1672532400001, firstName: 'Elena', lastName: 'Rodriguez', phone: '202-555-0181', email: 'elena.r@innovate.com', organization: 'Innovate Inc.', category: '1', address: '123 Tech Ave', city: 'Metropolis', state: 'NY', notes: 'Primary contact for Project Alpha.', dateAdded: '2023-01-01T10:00:00.000Z' },
-        { id: 1672532400002, firstName: 'Marcus', lastName: 'Chen', phone: '202-555-0199', email: 'marcus.chen@apex.co', organization: 'Apex Supplies', category: '2', address: '456 Industrial Rd', city: 'Gotham', state: 'NJ', notes: 'Our main supplier for raw materials.', dateAdded: '2023-02-15T11:30:00.000Z' },
-        { id: 1672532400003, firstName: 'Sophia', lastName: 'Williams', phone: '312-555-0142', email: 'sophia.w@quantum.net', organization: 'Quantum Solutions', category: '3', address: '789 Logic Lane', city: 'Star City', state: 'CA', notes: 'Partner for the upcoming Q3 initiative.', dateAdded: '2023-03-10T14:00:00.000Z' },
-        { id: 1672532400004, firstName: 'Liam', lastName: "O'Connor", phone: '415-555-0133', email: 'liam.o@synergy.io', organization: 'Synergy Corp', category: '4', address: '101 Future Drive', city: 'San Francisco', state: 'CA', notes: 'Met at the tech conference. Interested in our services.', dateAdded: '2023-04-20T09:00:00.000Z' },
-        { id: 1672532400005, firstName: 'Aisha', lastName: 'Khan', phone: '312-555-0155', email: 'aisha.k@quantum.net', organization: 'Quantum Solutions', category: '1', address: '789 Logic Lane', city: 'Star City', state: 'CA', notes: 'Handles the day-to-day operations for the Q3 initiative.', dateAdded: '2023-05-05T16:45:00.000Z' },
-        { id: 1672532400006, firstName: 'Ben', lastName: 'Carter', phone: '713-555-0112', email: 'ben.carter@atlas.com', organization: 'Atlas Manufacturing', category: '2', address: '234 Factory Blvd', city: 'Houston', state: 'TX', notes: 'Provides specialized components. Good pricing.', dateAdded: '2023-06-11T13:20:00.000Z' },
-        { id: 1672532400007, firstName: 'Olivia', lastName: 'Garcia', phone: '305-555-0178', email: 'olivia.g@vista.co', organization: 'Vista Innovations', category: '3', address: '567 Ocean View', city: 'Miami', state: 'FL', notes: 'Potential partner for the new marketing campaign.', dateAdded: '2023-07-22T18:10:00.000Z' },
-        { id: 1672532400008, firstName: 'David', lastName: 'Kim', phone: '206-555-0121', email: 'david.kim@summit.com', organization: 'Summit Enterprises', category: '4', address: '890 Peak St', city: 'Seattle', state: 'WA', notes: 'Interested in a bulk purchase. Follow up next week.', dateAdded: '2023-08-01T11:00:00.000Z' },
-        { id: 1672532400009, firstName: 'Chloe', lastName: 'Taylor', phone: '617-555-0164', email: 'chloe.t@innovate.com', organization: 'Innovate Inc.', category: '1', address: '123 Tech Ave', city: 'Metropolis', state: 'NY', notes: 'Technical lead for Project Alpha.', dateAdded: '2023-09-14T10:30:00.000Z' }
+    books: [
+        { id: 1, title: 'The Midnight Library', author: 'Matt Haig', isbn: '9780525559474', publisher: 'Viking', publicationYear: 2020, genre: '1', price: 15.99, quantityInStock: 25, dateAdded: '2023-01-10T10:00:00.000Z' },
+        { id: 2, title: 'Project Hail Mary', author: 'Andy Weir', isbn: '9780593135204', publisher: 'Ballantine Books', publicationYear: 2021, genre: '2', price: 18.50, quantityInStock: 15, dateAdded: '2023-02-15T11:30:00.000Z' },
+        { id: 3, title: 'Klara and the Sun', author: 'Kazuo Ishiguro', isbn: '9780593318171', publisher: 'Knopf', publicationYear: 2021, genre: '2', price: 17.00, quantityInStock: 20, dateAdded: '2023-03-20T14:00:00.000Z' },
+        { id: 4, title: 'The Vanishing Half', author: 'Brit Bennett', isbn: '9780525536291', publisher: 'Riverhead Books', publicationYear: 2020, genre: '3', price: 16.20, quantityInStock: 30, dateAdded: '2023-04-05T09:00:00.000Z' },
+        { id: 5, title: 'Dune', author: 'Frank Herbert', isbn: '9780441013593', publisher: 'Ace Books', publicationYear: 1965, genre: '2', price: 10.99, quantityInStock: 50, dateAdded: '2023-05-11T16:45:00.000Z' },
+        { id: 6, title: 'Atomic Habits', author: 'James Clear', isbn: '9780735211292', publisher: 'Avery', publicationYear: 2018, genre: '4', price: 14.99, quantityInStock: 40, dateAdded: '2023-06-01T13:20:00.000Z' },
     ],
-    categories: [
-        { id: 1, name: 'Client', description: 'Regular customers' },
-        { id: 2, name: 'Supplier', description: 'Product/service suppliers' },
-        { id: 3, name: 'Partner', description: 'Business partners' },
-        { id: 4, name: 'Prospect', description: 'Potential clients' }
+    genres: [
+        { id: 1, name: 'Contemporary Fiction', description: 'Fiction set in the modern world.' },
+        { id: 2, name: 'Science Fiction', description: 'Imaginative concepts such as futuristic science and technology.' },
+        { id: 3, name: 'Historical Fiction', description: 'Stories set in the past.' },
+        { id: 4, name: 'Self-Help', description: 'Books written with the intention to instruct its readers.' }
     ],
+    sales: [],
     activities: []
 };
 
@@ -62,16 +70,17 @@ const icons = {
     edit: svgIcon(`<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>`),
     trash: svgIcon(`<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>`),
     plus: svgIcon(`<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>`),
-    phone: svgIcon(`<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>`),
-    mail: svgIcon(`<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>`),
-    location: svgIcon(`<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>`),
-    usersGroup: svgIcon(`<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>`),
+    dollar: svgIcon(`<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>`),
+    book: svgIcon(`<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>`),
+    hash: svgIcon(`<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>`),
+    users: svgIcon(`<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>`),
     tag: svgIcon(`<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.432 0l6.586-6.586a2.426 2.426 0 0 0 0-3.432z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>`),
     export: svgIcon(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>`),
     chart: svgIcon(`<path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20V16"></path>`),
     backup: svgIcon(`<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>`),
     import: svgIcon(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>`),
     activityLog: svgIcon(`<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>`),
+    inventory: svgIcon(`<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>`),
 };
 
 
@@ -97,15 +106,11 @@ function handleRegister(event: Event) {
         return;
     }
 
-    const newUser = {
-        id: Date.now(),
-        username,
-        password // Note: In a real app, hash and salt the password!
-    };
+    const newUser = { id: Date.now(), username, password };
     appData.users.push(newUser);
     appData.userData[newUser.id] = JSON.parse(JSON.stringify(defaultData)); // Deep copy default data
 
-    localStorage.setItem('CISB_DATA', JSON.stringify(appData));
+    localStorage.setItem('BSMS_DATA', JSON.stringify(appData));
     
     alert('Registration successful! Welcome.');
     (document.getElementById('registerForm') as HTMLFormElement).reset();
@@ -128,21 +133,17 @@ function handleLogin(event: Event) {
 }
 
 function loginUser(userId: number) {
-    sessionStorage.setItem('CISB_USER_ID', String(userId));
+    sessionStorage.setItem('BSMS_USER_ID', String(userId));
     initializeAppForUser(userId);
 }
 
 function handleLogout() {
-    sessionStorage.removeItem('CISB_USER_ID');
+    sessionStorage.removeItem('BSMS_USER_ID');
     currentUserId = null;
-    contacts = [];
-    categories = [];
-    activities = [];
+    books = []; genres = []; sales = []; activities = [];
 
     const dashboardTitle = document.getElementById('dashboardTitle') as HTMLElement;
-    if (dashboardTitle) {
-        dashboardTitle.textContent = 'Dashboard';
-    }
+    if (dashboardTitle) dashboardTitle.textContent = 'Dashboard';
 
     document.getElementById('auth-container')!.style.display = 'block';
     (document.querySelector('.container') as HTMLElement)!.style.display = 'none';
@@ -151,20 +152,19 @@ function handleLogout() {
 
 // --- DATA MANAGEMENT ---
 function getMasterData() {
-    const data = localStorage.getItem('CISB_DATA');
-    if (data) {
-        return JSON.parse(data);
-    }
+    const data = localStorage.getItem('BSMS_DATA');
+    if (data) return JSON.parse(data);
+    
     const initialData = { users: [], userData: {} };
-    localStorage.setItem('CISB_DATA', JSON.stringify(initialData));
+    localStorage.setItem('BSMS_DATA', JSON.stringify(initialData));
     return initialData;
 }
 
 function saveToLocalStorage() {
     if (!currentUserId) return;
     const appData = getMasterData();
-    appData.userData[currentUserId] = { contacts, categories, activities };
-    localStorage.setItem('CISB_DATA', JSON.stringify(appData));
+    appData.userData[currentUserId] = { books, genres, sales, activities };
+    localStorage.setItem('BSMS_DATA', JSON.stringify(appData));
 }
 
 function loadFromLocalStorage() {
@@ -173,19 +173,23 @@ function loadFromLocalStorage() {
     const userData = appData.userData[currentUserId];
 
     if (userData) {
-        contacts = userData.contacts || [];
-        categories = userData.categories || [];
+        books = userData.books || [];
+        genres = userData.genres || [];
+        sales = userData.sales || [];
         activities = userData.activities || [];
     } else {
-        contacts = [];
-        categories = [];
-        activities = [];
+        // This case should ideally not happen after registration
+        const deepCopy = JSON.parse(JSON.stringify(defaultData));
+        books = deepCopy.books;
+        genres = deepCopy.genres;
+        sales = deepCopy.sales;
+        activities = deepCopy.activities;
     }
 }
 
 // --- INITIALIZATION & UI ---
 function init() {
-    const userId = sessionStorage.getItem('CISB_USER_ID');
+    const userId = sessionStorage.getItem('BSMS_USER_ID');
     if (userId) {
         initializeAppForUser(parseInt(userId, 10));
     } else {
@@ -196,15 +200,12 @@ function init() {
     const savedTheme = localStorage.getItem('smeTheme');
     (document.getElementById('darkModeToggle') as HTMLInputElement).checked = savedTheme === 'dark';
 
-    // Mobile menu setup
     const hamburgerMenu = document.getElementById('hamburgerMenu');
     hamburgerMenu?.addEventListener('click', toggleMobileMenu);
 
     const sidebar = document.querySelector('.sidebar');
     sidebar?.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.nav-btn')) {
-            closeMobileMenu();
-        }
+        if ((e.target as HTMLElement).closest('.nav-btn')) closeMobileMenu();
     });
 }
 
@@ -214,39 +215,29 @@ function initializeAppForUser(userId: number) {
     const appData = getMasterData();
     const user = appData.users.find((u: { id: number; }) => u.id === userId);
     const dashboardTitle = document.getElementById('dashboardTitle') as HTMLElement;
-    if (user && dashboardTitle) {
-        dashboardTitle.textContent = `Welcome, ${user.username}!`;
-    }
+    if (user && dashboardTitle) dashboardTitle.textContent = `Welcome, ${user.username}!`;
 
     document.getElementById('auth-container')!.style.display = 'none';
     (document.querySelector('.container') as HTMLElement)!.style.display = 'flex';
 
     loadFromLocalStorage();
-    populateCategoryDropdowns();
-    renderContacts();
-    renderCategories();
+    populateGenreDropdowns();
+    renderBooks();
+    renderGenres();
     updateStats();
     updateDashboard();
     showView('dashboard');
 }
 
-function toggleMobileMenu() {
-    document.body.classList.toggle('sidebar-open');
-}
-
-function closeMobileMenu() {
-    document.body.classList.remove('sidebar-open');
-}
+function toggleMobileMenu() { document.body.classList.toggle('sidebar-open'); }
+function closeMobileMenu() { document.body.classList.remove('sidebar-open'); }
 
 function showView(viewId: string) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
     document.getElementById(viewId)!.classList.add('active');
-    const navBtn = document.querySelector(`.nav-btn[data-view='${viewId}']`);
-    if (navBtn) {
-        navBtn.classList.add('active');
-    }
+    document.querySelector(`.nav-btn[data-view='${viewId}']`)?.classList.add('active');
 }
 
 function toggleTheme() {
@@ -256,419 +247,512 @@ function toggleTheme() {
     localStorage.setItem('smeTheme', isDarkMode ? 'dark' : 'light');
 }
 
-function viewContactsByCategory(categoryId: number) {
-    (document.getElementById('categoryFilter') as HTMLSelectElement).value = String(categoryId);
-    showView('contacts');
-    filterContacts();
+function viewBooksByGenre(genreId: number) {
+    (document.getElementById('genreFilter') as HTMLSelectElement).value = String(genreId);
+    showView('books');
+    filterBooks();
 }
 
-// Contact functions
-function openAddContactModal() {
+// Book functions
+function openAddBookModal() {
     currentEditId = null;
-    document.getElementById('modalTitle')!.textContent = 'Add New Contact';
-    (document.getElementById('contactForm') as HTMLFormElement).reset();
-    (document.getElementById('contactId') as HTMLInputElement).value = '';
-    document.getElementById('contactModal')!.classList.add('active');
+    document.getElementById('modalTitle')!.textContent = 'Add New Book';
+    (document.getElementById('bookForm') as HTMLFormElement).reset();
+    (document.getElementById('bookId') as HTMLInputElement).value = '';
+    document.getElementById('bookModal')!.classList.add('active');
 }
 
-function closeContactModal() {
-    document.getElementById('contactModal')!.classList.remove('active');
-}
+function closeBookModal() { document.getElementById('bookModal')!.classList.remove('active'); }
 
-function editContact(id: number) {
-    const contact = contacts.find(c => c.id === id);
-    if (!contact) return;
+function editBook(id: number) {
+    const book = books.find(b => b.id === id);
+    if (!book) return;
 
     currentEditId = id;
-    document.getElementById('modalTitle')!.textContent = 'Edit Contact';
-    (document.getElementById('contactId') as HTMLInputElement).value = String(contact.id);
-    (document.getElementById('firstName') as HTMLInputElement).value = contact.firstName;
-    (document.getElementById('lastName') as HTMLInputElement).value = contact.lastName;
-    (document.getElementById('phone') as HTMLInputElement).value = contact.phone;
-    (document.getElementById('email') as HTMLInputElement).value = contact.email || '';
-    (document.getElementById('organization') as HTMLInputElement).value = contact.organization || '';
-    (document.getElementById('category') as HTMLSelectElement).value = contact.category;
-    (document.getElementById('address') as HTMLInputElement).value = contact.address || '';
-    (document.getElementById('city') as HTMLInputElement).value = contact.city || '';
-    (document.getElementById('state') as HTMLInputElement).value = contact.state || '';
-    (document.getElementById('notes') as HTMLTextAreaElement).value = contact.notes || '';
+    document.getElementById('modalTitle')!.textContent = 'Edit Book';
+    (document.getElementById('bookId') as HTMLInputElement).value = String(book.id);
+    (document.getElementById('title') as HTMLInputElement).value = book.title;
+    (document.getElementById('author') as HTMLInputElement).value = book.author;
+    (document.getElementById('isbn') as HTMLInputElement).value = book.isbn || '';
+    (document.getElementById('publisher') as HTMLInputElement).value = book.publisher || '';
+    (document.getElementById('publicationYear') as HTMLInputElement).value = String(book.publicationYear || '');
+    (document.getElementById('genre') as HTMLSelectElement).value = book.genre;
+    (document.getElementById('price') as HTMLInputElement).value = String(book.price);
+    (document.getElementById('quantityInStock') as HTMLInputElement).value = String(book.quantityInStock);
     
-    document.getElementById('contactModal')!.classList.add('active');
+    document.getElementById('bookModal')!.classList.add('active');
 }
 
-function saveContact() {
-    const firstName = (document.getElementById('firstName') as HTMLInputElement).value.trim();
-    const lastName = (document.getElementById('lastName') as HTMLInputElement).value.trim();
-    const phone = (document.getElementById('phone') as HTMLInputElement).value.trim();
-    const category = (document.getElementById('category') as HTMLSelectElement).value;
+function saveBook() {
+    const title = (document.getElementById('title') as HTMLInputElement).value.trim();
+    const author = (document.getElementById('author') as HTMLInputElement).value.trim();
+    const genre = (document.getElementById('genre') as HTMLSelectElement).value;
+    const price = (document.getElementById('price') as HTMLInputElement).value;
+    const quantity = (document.getElementById('quantityInStock') as HTMLInputElement).value;
 
-    if (!firstName || !lastName || !phone || !category) {
+    if (!title || !author || !genre || price === '' || quantity === '') {
         alert('Please fill in all required fields');
         return;
     }
 
-    const contact: Contact = {
+    const book: Book = {
         id: currentEditId || Date.now(),
-        firstName,
-        lastName,
-        phone,
-        email: (document.getElementById('email') as HTMLInputElement).value.trim(),
-        organization: (document.getElementById('organization') as HTMLInputElement).value.trim(),
-        category,
-        address: (document.getElementById('address') as HTMLInputElement).value.trim(),
-        city: (document.getElementById('city') as HTMLInputElement).value.trim(),
-        state: (document.getElementById('state') as HTMLInputElement).value.trim(),
-        notes: (document.getElementById('notes') as HTMLTextAreaElement).value.trim(),
-        dateAdded: currentEditId ? contacts.find(c => c.id === currentEditId)!.dateAdded : new Date().toISOString()
+        title,
+        author,
+        isbn: (document.getElementById('isbn') as HTMLInputElement).value.trim(),
+        publisher: (document.getElementById('publisher') as HTMLInputElement).value.trim(),
+        publicationYear: Number((document.getElementById('publicationYear') as HTMLInputElement).value),
+        genre,
+        price: parseFloat(price),
+        quantityInStock: parseInt(quantity, 10),
+        dateAdded: currentEditId ? books.find(b => b.id === currentEditId)!.dateAdded : new Date().toISOString()
     };
 
     if (currentEditId) {
-        const index = contacts.findIndex(c => c.id === currentEditId);
-        contacts[index] = contact;
-        addActivity(`Updated contact: ${firstName} ${lastName}`, icons.edit);
+        const index = books.findIndex(b => b.id === currentEditId);
+        books[index] = book;
+        addActivity(`Updated book: ${title}`, icons.edit);
     } else {
-        contacts.push(contact);
-        addActivity(`Added new contact: ${firstName} ${lastName}`, icons.plus);
+        books.push(book);
+        addActivity(`Added new book: ${title}`, icons.plus);
     }
 
     saveToLocalStorage();
-    renderContacts();
-    updateStats();
-    updateDashboard();
-    closeContactModal();
+    renderBooks(); updateStats(); updateDashboard();
+    closeBookModal();
 }
 
-function deleteContact(id: number) {
-    const contact = contacts.find(c => c.id === id);
-    if (!contact) return;
+function deleteBook(id: number) {
+    const book = books.find(b => b.id === id);
+    if (!book) return;
 
-    if (confirm(`Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`)) {
-        contacts = contacts.filter(c => c.id !== id);
-        addActivity(`Deleted contact: ${contact.firstName} ${contact.lastName}`, icons.trash);
+    if (confirm(`Are you sure you want to delete "${book.title}"?`)) {
+        books = books.filter(b => b.id !== id);
+        addActivity(`Deleted book: ${book.title}`, icons.trash);
         saveToLocalStorage();
-        renderContacts();
-        updateStats();
-        updateDashboard();
+        renderBooks(); updateStats(); updateDashboard();
     }
 }
 
-function renderContacts() {
-    const grid = document.getElementById('contactsGrid')!;
+function renderBooks() {
+    const grid = document.getElementById('booksGrid')!;
     const emptyState = document.getElementById('emptyState')!;
     
-    let filteredContacts = [...contacts];
-    
+    let filteredBooks = [...books];
     const searchTerm = (document.getElementById('searchInput') as HTMLInputElement)?.value.toLowerCase() || '';
-    const categoryFilter = (document.getElementById('categoryFilter') as HTMLSelectElement)?.value || '';
-    const sortFilter = (document.getElementById('sortFilter') as HTMLSelectElement)?.value || 'name';
+    const genreFilter = (document.getElementById('genreFilter') as HTMLSelectElement)?.value || '';
+    const sortFilter = (document.getElementById('sortFilter') as HTMLSelectElement)?.value || 'title';
 
     if (searchTerm) {
-        filteredContacts = filteredContacts.filter(c => 
-            c.firstName.toLowerCase().includes(searchTerm) ||
-            c.lastName.toLowerCase().includes(searchTerm) ||
-            c.phone.includes(searchTerm) ||
-            (c.email && c.email.toLowerCase().includes(searchTerm)) ||
-            (c.organization && c.organization.toLowerCase().includes(searchTerm))
+        filteredBooks = filteredBooks.filter(b => 
+            b.title.toLowerCase().includes(searchTerm) ||
+            b.author.toLowerCase().includes(searchTerm) ||
+            b.isbn.includes(searchTerm)
         );
     }
 
-    if (categoryFilter) {
-        filteredContacts = filteredContacts.filter(c => c.category == categoryFilter);
-    }
+    if (genreFilter) filteredBooks = filteredBooks.filter(b => b.genre == genreFilter);
+    
+    if (sortFilter === 'title') filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sortFilter === 'author') filteredBooks.sort((a, b) => a.author.localeCompare(b.author));
+    else if (sortFilter === 'recent') filteredBooks.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
 
-    if (sortFilter === 'name') {
-        filteredContacts.sort((a, b) => a.lastName.localeCompare(b.lastName));
-    } else if (sortFilter === 'recent') {
-        filteredContacts.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
-    } else if (sortFilter === 'organization') {
-        filteredContacts.sort((a, b) => (a.organization || '').localeCompare(b.organization || ''));
-    }
+    grid.style.display = filteredBooks.length > 0 ? 'grid' : 'none';
+    emptyState.style.display = filteredBooks.length === 0 ? 'block' : 'none';
 
-    if (filteredContacts.length === 0) {
-        grid.style.display = 'none';
-        emptyState.style.display = 'block';
-    } else {
-        grid.style.display = 'grid';
-        emptyState.style.display = 'none';
-    }
-
-    grid.innerHTML = filteredContacts.map(contact => {
-        let initials = (contact.firstName?.[0] || '' + contact.lastName?.[0] || '').toUpperCase() || '??';
-        const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || 'Uncategorized';
-        
+    grid.innerHTML = filteredBooks.map(book => {
+        const genreName = genres.find(g => g.id == Number(book.genre))?.name || 'Uncategorized';
+        const stockClass = book.quantityInStock === 0 ? 'color: var(--danger);' : book.quantityInStock < 10 ? 'color: var(--warning);' : '';
         return `
-            <div class="contact-card">
-                <div class="contact-header">
+            <div class="card">
+                <div class="card-header">
                     <div style="display: flex; align-items: center;">
-                        <div class="contact-avatar">${initials}</div>
-                        <div class="contact-info">
-                            <div class="contact-name">${contact.firstName} ${contact.lastName}</div>
-                            ${contact.organization ? `<div class="contact-org">${contact.organization}</div>` : ''}
+                        <div class="card-avatar">${icons.book}</div>
+                        <div class="card-info">
+                            <div class="card-title">${book.title}</div>
+                            <div class="card-subtitle">${book.author}</div>
                         </div>
                     </div>
-                    <div class="contact-actions">
-                        <button class="icon-btn" onclick="editContact(${contact.id})" title="Edit">${icons.edit}</button>
-                        <button class="icon-btn" onclick="deleteContact(${contact.id})" title="Delete">${icons.trash}</button>
+                    <div class="card-actions">
+                        <button class="icon-btn" onclick="editBook(${book.id})" title="Edit">${icons.edit}</button>
+                        <button class="icon-btn" onclick="deleteBook(${book.id})" title="Delete">${icons.trash}</button>
                     </div>
                 </div>
-                <div class="contact-details">
-                    <div class="detail-row"><span class="icon">${icons.phone}</span><a href="tel:${contact.phone}">${contact.phone}</a></div>
-                    ${contact.email ? `<div class="detail-row"><span class="icon">${icons.mail}</span><a href="mailto:${contact.email}">${contact.email}</a></div>` : ''}
-                    ${contact.address ? `<div class="detail-row"><span class="icon">${icons.location}</span><span>${contact.address}${contact.city ? ', ' + contact.city : ''}${contact.state ? ', ' + contact.state : ''}</span></div>` : ''}
-                    <span class="category-badge">${categoryName}</span>
+                <div class="card-details">
+                    ${book.isbn ? `<div class="detail-row"><span class="icon">${icons.hash}</span><span>ISBN: ${book.isbn}</span></div>` : ''}
+                    <div class="detail-row"><span class="icon">${icons.dollar}</span><span>Price: $${book.price.toFixed(2)}</span></div>
+                    <div class="detail-row" style="${stockClass}"><span class="icon">${icons.inventory}</span><span>In Stock: ${book.quantityInStock}</span></div>
+                    <span class="badge">${genreName}</span>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="openLogSaleModal(${book.id})" ${book.quantityInStock === 0 ? 'disabled' : ''}>Log Sale</button>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function filterContacts() { renderContacts(); }
+function filterBooks() { renderBooks(); }
 
-// Category functions
-function openAddCategoryModal() {
-    (document.getElementById('categoryName') as HTMLInputElement).value = '';
-    (document.getElementById('categoryDesc') as HTMLTextAreaElement).value = '';
-    document.getElementById('categoryModal')!.classList.add('active');
+// Genre functions
+function openAddGenreModal() {
+    (document.getElementById('genreForm') as HTMLFormElement).reset();
+    document.getElementById('genreModal')!.classList.add('active');
 }
 
-function closeCategoryModal() { document.getElementById('categoryModal')!.classList.remove('active'); }
+function closeGenreModal() { document.getElementById('genreModal')!.classList.remove('active'); }
 
-function saveCategory() {
-    const name = (document.getElementById('categoryName') as HTMLInputElement).value.trim();
-    const description = (document.getElementById('categoryDesc') as HTMLTextAreaElement).value.trim();
+function saveGenre() {
+    const name = (document.getElementById('genreName') as HTMLInputElement).value.trim();
+    if (!name) { alert('Please enter a genre name'); return; }
 
-    if (!name) {
-        alert('Please enter a category name');
-        return;
-    }
+    const genre: Genre = { 
+        id: Date.now(), 
+        name, 
+        description: (document.getElementById('genreDesc') as HTMLTextAreaElement).value.trim() 
+    };
 
-    const category: Category = { id: Date.now(), name, description };
-
-    categories.push(category);
-    addActivity(`Added new category: ${name}`, icons.tag);
+    genres.push(genre);
+    addActivity(`Added new genre: ${name}`, icons.tag);
     saveToLocalStorage();
-    populateCategoryDropdowns();
-    renderCategories();
-    updateStats();
-    closeCategoryModal();
+    populateGenreDropdowns(); renderGenres(); updateStats();
+    closeGenreModal();
 }
 
-function deleteCategory(id: number) {
-    const category = categories.find(c => c.id === id);
-    if (!category) return;
+function deleteGenre(id: number) {
+    const genre = genres.find(g => g.id === id);
+    if (!genre) return;
 
-    const contactsInCategory = contacts.filter(c => c.category == String(id)).length;
-    
-    if (contactsInCategory > 0) {
-        alert(`Cannot delete this category. ${contactsInCategory} contact(s) are using it.`);
+    if (books.some(b => b.genre == String(id))) {
+        alert(`Cannot delete this genre. ${books.filter(b => b.genre == String(id)).length} book(s) are using it.`);
         return;
     }
 
-    if (confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
-        categories = categories.filter(c => c.id !== id);
-        addActivity(`Deleted category: ${category.name}`, icons.trash);
+    if (confirm(`Are you sure you want to delete the genre "${genre.name}"?`)) {
+        genres = genres.filter(g => g.id !== id);
+        addActivity(`Deleted genre: ${genre.name}`, icons.trash);
         saveToLocalStorage();
-        populateCategoryDropdowns();
-        renderCategories();
-        updateStats();
+        populateGenreDropdowns(); renderGenres(); updateStats();
     }
 }
 
-function populateCategoryDropdowns() {
-    const categorySelect = document.getElementById('category')!;
-    const categoryFilter = document.getElementById('categoryFilter')!;
-    
-    const options = categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
-
-    if (categorySelect) categorySelect.innerHTML = '<option value="">Select Category</option>' + options;
-    if (categoryFilter) categoryFilter.innerHTML = '<option value="">All Categories</option>' + options;
+function populateGenreDropdowns() {
+    const genreSelect = document.getElementById('genre')!;
+    const genreFilter = document.getElementById('genreFilter')!;
+    const options = genres.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+    genreSelect.innerHTML = '<option value="">Select Genre</option>' + options;
+    genreFilter.innerHTML = '<option value="">All Genres</option>' + options;
 }
 
-function renderCategories() {
-    const grid = document.getElementById('categoriesGrid')!;
-    grid.innerHTML = categories.map(category => {
-        const contactCount = contacts.filter(c => c.category == String(category.id)).length;
+function renderGenres() {
+    const grid = document.getElementById('genresGrid')!;
+    grid.innerHTML = genres.map(genre => {
+        const bookCount = books.filter(b => b.genre == String(genre.id)).length;
         return `
-            <div class="contact-card" onclick="viewContactsByCategory(${category.id})">
-                <div class="contact-header">
+            <div class="card" onclick="viewBooksByGenre(${genre.id})">
+                <div class="card-header">
                     <div style="display: flex; align-items: center;">
-                        <div class="contact-avatar">${icons.tag}</div>
-                        <div class="contact-info">
-                            <div class="contact-name">${category.name}</div>
-                            ${category.description ? `<div class="contact-org">${category.description}</div>` : ''}
+                        <div class="card-avatar">${icons.tag}</div>
+                        <div class="card-info">
+                            <div class="card-title">${genre.name}</div>
+                            ${genre.description ? `<div class="card-subtitle">${genre.description}</div>` : ''}
                         </div>
                     </div>
-                    <div class="contact-actions">
-                        <button class="icon-btn" onclick="deleteCategory(${category.id}); event.stopPropagation();" title="Delete">${icons.trash}</button>
+                    <div class="card-actions">
+                        <button class="icon-btn" onclick="deleteGenre(${genre.id}); event.stopPropagation();" title="Delete">${icons.trash}</button>
                     </div>
                 </div>
-                <div class="contact-details">
-                    <div class="detail-row"><span class="icon">${icons.usersGroup}</span><span>${contactCount} contact${contactCount !== 1 ? 's' : ''}</span></div>
+                <div class="card-details">
+                    <div class="detail-row"><span class="icon">${icons.book}</span><span>${bookCount} book${bookCount !== 1 ? 's' : ''}</span></div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Sale functions
+function openLogSaleModal(bookId: number) {
+    const book = books.find(b => b.id === bookId);
+    if (!book) return;
+
+    currentSaleBookId = bookId;
+    document.getElementById('logSaleModalTitle')!.textContent = `Log Sale`;
+    document.getElementById('logSaleBookTitle')!.textContent = `"${book.title}"`;
+    const quantityInput = document.getElementById('saleQuantity') as HTMLInputElement;
+    quantityInput.value = '1';
+    quantityInput.max = String(book.quantityInStock);
+    
+    const updateTotal = () => {
+        const quantity = parseInt(quantityInput.value, 10) || 0;
+        const total = quantity * book.price;
+        document.getElementById('logSaleTotal')!.textContent = `$${total.toFixed(2)}`;
+    };
+    
+    quantityInput.oninput = updateTotal;
+    updateTotal();
+    
+    document.getElementById('logSaleModal')!.classList.add('active');
+}
+
+function closeLogSaleModal() {
+    document.getElementById('logSaleModal')!.classList.remove('active');
+    currentSaleBookId = null;
+}
+
+function saveSale() {
+    if (!currentSaleBookId) return;
+    const book = books.find(b => b.id === currentSaleBookId);
+    if (!book) return;
+
+    const quantityInput = document.getElementById('saleQuantity') as HTMLInputElement;
+    const quantity = parseInt(quantityInput.value, 10);
+
+    if (isNaN(quantity) || quantity <= 0) {
+        alert('Please enter a valid quantity.');
+        return;
+    }
+    if (quantity > book.quantityInStock) {
+        alert(`Cannot sell ${quantity} copies. Only ${book.quantityInStock} in stock.`);
+        return;
+    }
+
+    const sale: Sale = {
+        id: Date.now(),
+        bookId: book.id,
+        bookTitle: book.title,
+        quantity,
+        pricePerItem: book.price,
+        totalAmount: quantity * book.price,
+        date: new Date().toISOString()
+    };
+
+    sales.push(sale);
+    book.quantityInStock -= quantity;
+    
+    addActivity(`Sold ${quantity} of "${book.title}"`, icons.dollar);
+    saveToLocalStorage();
+    renderBooks(); updateStats(); updateDashboard();
+    closeLogSaleModal();
 }
 
 // Stats and Dashboard
 function updateStats() {
-    const total = contacts.length;
-    const orgs = [...new Set(contacts.map(c => c.organization).filter(o => o))].length;
-    const cats = categories.length;
-
-    document.getElementById('totalContacts')!.textContent = String(total);
-    document.getElementById('totalOrgs')!.textContent = String(orgs);
-    document.getElementById('totalCategories')!.textContent = String(cats);
+    document.getElementById('totalBooks')!.textContent = String(books.length);
+    document.getElementById('totalAuthors')!.textContent = String([...new Set(books.map(b => b.author))].length);
+    document.getElementById('totalGenres')!.textContent = String(genres.length);
 }
 
 function updateDashboard() {
-    const total = contacts.length;
+    const totalRevenue = sales.reduce((sum, s) => sum + s.totalAmount, 0);
+    const unitsSold = sales.reduce((sum, s) => sum + s.quantity, 0);
+    const inventoryValue = books.reduce((sum, b) => sum + (b.price * b.quantityInStock), 0);
     
-    const now = new Date();
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const newThisMonth = contacts.filter(c => new Date(c.dateAdded) >= firstOfMonth).length;
+    document.getElementById('dashTotalBooks')!.textContent = String(books.length);
+    document.getElementById('dashTotalRevenue')!.textContent = `$${totalRevenue.toFixed(2)}`;
+    document.getElementById('dashUnitsSold')!.textContent = String(unitsSold);
+    document.getElementById('dashInventoryValue')!.textContent = `$${inventoryValue.toFixed(2)}`;
     
-    const clients = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'client').length;
-    const suppliers = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'supplier').length;
-    const partners = contacts.filter(c => categories.find(cat => cat.id == Number(c.category))?.name.toLowerCase() === 'partner').length;
-
-    document.getElementById('dashTotalContacts')!.textContent = String(total);
-    document.getElementById('dashNewThisMonth')!.textContent = String(newThisMonth);
-    document.getElementById('dashActiveClients')!.textContent = String(clients);
-    document.getElementById('dashSuppliers')!.textContent = String(suppliers);
-    document.getElementById('reportTotalContacts')!.textContent = String(total);
-    document.getElementById('reportClients')!.textContent = String(clients);
-    document.getElementById('reportSuppliers')!.textContent = String(suppliers);
-    document.getElementById('reportPartners')!.textContent = String(partners);
+    // Reports page stats
+    document.getElementById('reportTotalBooks')!.textContent = String(books.length);
+    document.getElementById('reportTotalRevenue')!.textContent = `$${totalRevenue.toFixed(2)}`;
+    document.getElementById('reportUnitsSold')!.textContent = String(unitsSold);
+    
+    const salesByGenre: {[key: string]: number} = {};
+    sales.forEach(sale => {
+        const book = books.find(b => b.id === sale.bookId);
+        if (book) {
+            const genreName = genres.find(g => g.id == Number(book.genre))?.name || 'Uncategorized';
+            salesByGenre[genreName] = (salesByGenre[genreName] || 0) + sale.quantity;
+        }
+    });
+    const topGenre = Object.keys(salesByGenre).length > 0 
+        ? Object.entries(salesByGenre).sort((a, b) => b[1] - a[1])[0][0] 
+        : '-';
+    document.getElementById('reportTopGenre')!.textContent = topGenre;
 
     renderActivity();
+    renderCharts();
 }
 
 // Activity tracking
 function addActivity(text: string, icon: string) {
     activities.unshift({ text, icon, time: new Date().toLocaleString() });
-    if (activities.length > 10) activities = activities.slice(0, 10);
+    if (activities.length > 10) activities.pop();
     saveToLocalStorage();
     renderActivity();
 }
 
 function renderActivity() {
-    const activityList = document.getElementById('activityList')!;
+    const list = document.getElementById('activityList')!;
     if (!activities || activities.length === 0) {
-        activityList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-3);"><div style="font-size: 48px; margin-bottom: 10px;">${icons.activityLog}</div><div>No recent activity</div></div>`;
+        list.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-3);"><div style="font-size: 48px; margin-bottom: 10px;">${icons.activityLog}</div><div>No recent activity</div></div>`;
         return;
     }
-    activityList.innerHTML = activities.map(activity => `
+    list.innerHTML = activities.map(act => `
         <div class="activity-item">
-            <div class="activity-icon">${activity.icon}</div>
+            <div class="activity-icon">${act.icon}</div>
             <div class="activity-content">
-                <div class="activity-text">${activity.text}</div>
-                <div class="activity-time">${activity.time}</div>
+                <div class="activity-text">${act.text}</div>
+                <div class="activity-time">${act.time}</div>
             </div>
         </div>
     `).join('');
 }
 
-// Export functions
-function exportContacts() {
-    if (contacts.length === 0) {
-        alert('No contacts to export');
-        return;
+// --- Charting Functions ---
+function createBarChartSVG(data: {label: string, value: number}[], title: string): string {
+    if (!data || data.length === 0) {
+        return `<div class="chart-card"><h3>${title}</h3><div style="text-align: center; padding: 40px; color: var(--text-3);">No data to display</div></div>`;
     }
-    const csv = convertToCSV(contacts);
-    downloadCSV(csv, 'contacts_export.csv');
-    addActivity(`Exported ${contacts.length} contacts`, icons.export);
+
+    const chartHeight = 300;
+    const barMargin = 15;
+    const chartPadding = { top: 30, right: 20, bottom: 70, left: 40 };
+    const maxValue = Math.max(...data.map(d => d.value), 0);
+    const scale = (chartHeight - chartPadding.top - chartPadding.bottom) / (maxValue || 1);
+    const barWidth = 50;
+    const chartWidth = data.length * (barWidth + barMargin) + chartPadding.left + chartPadding.right;
+
+    const bars = data.map((d, i) => {
+        const barHeight = d.value * scale;
+        const x = chartPadding.left + i * (barWidth + barMargin);
+        const y = chartHeight - chartPadding.bottom - barHeight;
+        return `
+            <g>
+                <rect class="bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="4"></rect>
+                <text class="value-label" x="${x + barWidth / 2}" y="${y - 6}" text-anchor="middle">${d.value}</text>
+            </g>
+        `;
+    }).join('');
+
+    const labels = data.map((d, i) => {
+        const x = chartPadding.left + i * (barWidth + barMargin) + barWidth / 2;
+        const y = chartHeight - chartPadding.bottom + 15;
+        const labelText = d.label.length > 15 ? d.label.substring(0, 12) + '...' : d.label;
+        return `<text class="bar-label" x="${x}" y="${y}" text-anchor="middle" transform="rotate(-45, ${x}, ${y})">${labelText}</text>`;
+    }).join('');
+
+    const yAxisLines = [];
+    const tickCount = 5;
+    for (let i = 0; i <= tickCount; i++) {
+        const value = (maxValue / tickCount) * i;
+        if (value > 0) {
+            const y = chartHeight - chartPadding.bottom - (value * scale);
+            yAxisLines.push(`
+                <g>
+                    <line class="grid-line" x1="${chartPadding.left}" y1="${y}" x2="${chartWidth - chartPadding.right}" y2="${y}"></line>
+                    <text class="y-axis-label" x="${chartPadding.left - 8}" y="${y + 4}" text-anchor="end">${Math.round(value)}</text>
+                </g>
+            `);
+        }
+    }
+
+    return `
+        <div class="chart-card">
+            <h3>${title}</h3>
+            <svg class="chart-svg" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMinYMid meet">
+                <line class="axis-line" x1="${chartPadding.left}" y1="${chartHeight - chartPadding.bottom}" x2="${chartWidth - chartPadding.right}" y2="${chartHeight - chartPadding.bottom}"></line>
+                ${yAxisLines.join('')}
+                ${bars}
+                ${labels}
+            </svg>
+        </div>
+    `;
 }
 
-function convertToCSV(data: Contact[]) {
-    const headers = ['First Name', 'Last Name', 'Phone', 'Email', 'Organization', 'Category', 'Address', 'City', 'State', 'Notes'];
-    const rows = data.map(contact => {
-        const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || '';
-        return [contact.firstName, contact.lastName, contact.phone, contact.email || '', contact.organization || '', categoryName, contact.address || '', contact.city || '', contact.state || '', (contact.notes || '').replace(/"/g, '""')];
+function renderCharts() {
+    const container = document.getElementById('chartsContainer');
+    if (!container) return;
+
+    // Chart 1: Sales by Genre
+    const salesByGenre: { [key: string]: number } = {};
+    sales.forEach(sale => {
+        const book = books.find(b => b.id === sale.bookId);
+        if (book) {
+            const genreName = genres.find(g => g.id == Number(book.genre))?.name || 'Uncategorized';
+            salesByGenre[genreName] = (salesByGenre[genreName] || 0) + sale.quantity;
+        }
     });
-    let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => { csvContent += row.map(field => `"${field}"`).join(',') + '\n'; });
-    return csvContent;
+    const genreChartData = Object.entries(salesByGenre)
+        .map(([label, value]) => ({ label, value }))
+        .sort((a, b) => b.value - a.value);
+
+    // Chart 2: Top 5 Best-Selling Books
+    const salesByBook: { [key: string]: number } = {};
+    sales.forEach(sale => {
+        salesByBook[sale.bookTitle] = (salesByBook[sale.bookTitle] || 0) + sale.quantity;
+    });
+    const bookChartData = Object.entries(salesByBook)
+        .map(([label, value]) => ({ label, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+
+    container.innerHTML = `
+        ${createBarChartSVG(genreChartData, 'Units Sold by Genre')}
+        ${createBarChartSVG(bookChartData, 'Top 5 Best-Selling Books')}
+    `;
 }
 
-function downloadCSV(csv: string, filename: string) {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+// Export, Import, Settings functions
+function exportBooks() {
+    if (books.length === 0) { alert('No books to export'); return; }
+    const headers = ['Title', 'Author', 'ISBN', 'Publisher', 'Publication Year', 'Genre', 'Price', 'Quantity in Stock'];
+    const rows = books.map(book => {
+        const genreName = genres.find(g => g.id == Number(book.genre))?.name || '';
+        return [book.title, book.author, book.isbn, book.publisher, book.publicationYear, genreName, book.price, book.quantityInStock];
+    });
+    let csvContent = headers.join(',') + '\n' + rows.map(r => r.map(f => `"${String(f || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    downloadFile(csvContent, 'books_export.csv', 'text/csv;charset=utf-8;');
+    addActivity(`Exported ${books.length} books`, icons.export);
 }
 
 function generateReport() {
-    const reportData: any = {
-        totalContacts: contacts.length,
-        byCategory: {},
-        byState: {},
-        recentlyAdded: contacts.filter(c => new Date(c.dateAdded) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length
-    };
-    contacts.forEach(contact => {
-        const categoryName = categories.find(cat => cat.id == Number(contact.category))?.name || 'Uncategorized';
-        reportData.byCategory[categoryName] = (reportData.byCategory[categoryName] || 0) + 1;
-        if (contact.state) reportData.byState[contact.state] = (reportData.byState[contact.state] || 0) + 1;
-    });
-
-    let report = `COMPUTERIZED INFORMATION SYSTEM FOR BUSINESS - FULL REPORT\nGenerated: ${new Date().toLocaleString()}\n\nSUMMARY\nTotal Contacts: ${reportData.totalContacts}\nAdded in Last 7 Days: ${reportData.recentlyAdded}\n\nBY CATEGORY\n`;
-    Object.entries(reportData.byCategory).forEach(([cat, count]) => { report += `${cat}: ${count}\n`; });
-    if (Object.keys(reportData.byState).length > 0) {
-        report += `\nBY STATE\n`;
-        Object.entries(reportData.byState).forEach(([state, count]) => { report += `${state}: ${count}\n`; });
-    }
-    downloadCSV(report, 'directory_report.txt');
-    addActivity('Generated full report', icons.chart);
+    if (sales.length === 0) { alert('No sales to report'); return; }
+    const headers = ['Sale ID', 'Date', 'Book Title', 'Quantity', 'Price Per Item', 'Total Amount'];
+    const rows = sales.map(s => [s.id, new Date(s.date).toLocaleString(), s.bookTitle, s.quantity, s.pricePerItem, s.totalAmount]);
+    let csvContent = headers.join(',') + '\n' + rows.map(r => r.map(f => `"${f}"`).join(',')).join('\n');
+    downloadFile(csvContent, 'sales_report.csv', 'text/csv;charset=utf-8;');
+    addActivity('Generated sales report', icons.chart);
 }
 
-// Settings functions
 function backupData() {
-    const backup = { contacts, categories, exportDate: new Date().toISOString() };
+    const backup = { books, genres, sales, exportDate: new Date().toISOString() };
     const dataStr = JSON.stringify(backup, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `directory_backup_${Date.now()}.json`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadFile(dataStr, `bsms_backup_${Date.now()}.json`, 'application/json');
     addActivity('Created data backup', icons.backup);
     alert('Backup created successfully!');
 }
 
-function importContacts() {
+function downloadFile(content: string, filename: string, contentType: string) {
+    const blob = new Blob([content], { type: contentType });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function importData() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files![0];
+    input.onchange = e => {
+        const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = event => {
             try {
                 const data = JSON.parse(event.target!.result as string);
-                if (data.contacts && Array.isArray(data.contacts)) {
-                    const importedContacts = data.contacts.map((c: Contact) => ({...c, id: c.id + Date.now()}));
-                    contacts = [...contacts, ...importedContacts];
-                    if (data.categories) {
-                        data.categories.forEach((importedCat: Category) => {
-                            if (!categories.some(c => c.name === importedCat.name)) {
-                                categories.push({...importedCat, id: importedCat.id + Date.now()});
-                            }
-                        });
-                    }
+                if (confirm('This will overwrite existing data. Are you sure you want to import?')) {
+                    books = data.books || [];
+                    genres = data.genres || [];
+                    sales = data.sales || [];
                     saveToLocalStorage();
-                    renderContacts(); populateCategoryDropdowns(); renderCategories(); updateStats(); updateDashboard();
-                    addActivity(`Imported ${data.contacts.length} contacts`, icons.import);
+                    initializeAppForUser(currentUserId!);
+                    addActivity(`Imported data from backup`, icons.import);
                     alert('Import successful!');
-                } else { alert('Invalid JSON file format.'); }
+                }
             } catch (error) { alert('Error importing file: ' + (error as Error).message); }
         };
         reader.readAsText(file);
@@ -677,20 +761,19 @@ function importContacts() {
 }
 
 function clearAllData() {
-    if (confirm('Are you ABSOLUTELY sure you want to delete ALL your contacts and categories? This cannot be undone!')) {
-        if (confirm('This is your final warning. All your data will be permanently deleted. Continue?')) {
-            const confirmationText = prompt('To confirm, please type "DELETE" in the box below.');
-            if (confirmationText === 'DELETE') {
-                const defaultCats = JSON.parse(JSON.stringify(defaultData.categories));
-                contacts = [];
-                categories = defaultCats;
-                activities = [];
-                saveToLocalStorage();
-                initializeAppForUser(currentUserId!);
-                alert('All your data has been cleared.');
-            } else {
-                alert('Deletion cancelled. You did not type "DELETE" correctly.');
-            }
+    if (confirm('ARE YOU SURE you want to delete ALL data? This cannot be undone.')) {
+        const confirmation = prompt('To confirm, please type "DELETE" below.');
+        if (confirmation === 'DELETE') {
+            const defaultCopy = JSON.parse(JSON.stringify(defaultData));
+            books = defaultCopy.books;
+            genres = defaultCopy.genres;
+            sales = defaultCopy.sales;
+            activities = [];
+            saveToLocalStorage();
+            initializeAppForUser(currentUserId!);
+            alert('All your data has been cleared.');
+        } else {
+            alert('Deletion cancelled.');
         }
     }
 }
@@ -698,10 +781,11 @@ function clearAllData() {
 Object.assign(window, {
     handleLogin, handleRegister, showAuthForm, handleLogout,
     showView, toggleTheme,
-    openAddContactModal, closeContactModal, saveContact, editContact, deleteContact, filterContacts,
-    openAddCategoryModal, closeCategoryModal, saveCategory, deleteCategory, viewContactsByCategory,
-    exportContacts, generateReport,
-    backupData, importContacts, clearAllData,
+    openAddBookModal, closeBookModal, saveBook, editBook, deleteBook, filterBooks,
+    openAddGenreModal, closeGenreModal, saveGenre, deleteGenre, viewBooksByGenre,
+    openLogSaleModal, closeLogSaleModal, saveSale,
+    exportBooks, generateReport,
+    backupData, importData, clearAllData,
 });
 
 window.onload = init;
