@@ -380,7 +380,7 @@ function renderBooks() {
                 </div>
                 <div class="card-details">
                     ${book.isbn ? `<div class="detail-row"><span class="icon">${icons.hash}</span><span>ISBN: ${book.isbn}</span></div>` : ''}
-                    <div class="detail-row"><span class="icon">${icons.dollar}</span><span>Price: $${book.price.toFixed(2)}</span></div>
+                    <div class="detail-row"><span class="icon">${icons.dollar}</span><span>Price: ₦${book.price.toFixed(2)}</span></div>
                     <div class="detail-row" style="${stockClass}"><span class="icon">${icons.inventory}</span><span>In Stock: ${book.quantityInStock}</span></div>
                     <span class="badge">${genreName}</span>
                 </div>
@@ -485,7 +485,7 @@ function openLogSaleModal(bookId: number) {
     const updateTotal = () => {
         const quantity = parseInt(quantityInput.value, 10) || 0;
         const total = quantity * book.price;
-        document.getElementById('logSaleTotal')!.textContent = `$${total.toFixed(2)}`;
+        document.getElementById('logSaleTotal')!.textContent = `₦${total.toFixed(2)}`;
     };
     
     quantityInput.oninput = updateTotal;
@@ -548,13 +548,13 @@ function updateDashboard() {
     const inventoryValue = books.reduce((sum, b) => sum + (b.price * b.quantityInStock), 0);
     
     document.getElementById('dashTotalBooks')!.textContent = String(books.length);
-    document.getElementById('dashTotalRevenue')!.textContent = `$${totalRevenue.toFixed(2)}`;
+    document.getElementById('dashTotalRevenue')!.textContent = `₦${totalRevenue.toFixed(2)}`;
     document.getElementById('dashUnitsSold')!.textContent = String(unitsSold);
-    document.getElementById('dashInventoryValue')!.textContent = `$${inventoryValue.toFixed(2)}`;
+    document.getElementById('dashInventoryValue')!.textContent = `₦${inventoryValue.toFixed(2)}`;
     
     // Reports page stats
     document.getElementById('reportTotalBooks')!.textContent = String(books.length);
-    document.getElementById('reportTotalRevenue')!.textContent = `$${totalRevenue.toFixed(2)}`;
+    document.getElementById('reportTotalRevenue')!.textContent = `₦${totalRevenue.toFixed(2)}`;
     document.getElementById('reportUnitsSold')!.textContent = String(unitsSold);
     
     const salesByGenre: {[key: string]: number} = {};
